@@ -1,19 +1,11 @@
-nUnit v0.0.1
+nUnit.js v0.0.1
 ========
 
-A Node-style require() for browsers.
+Neal's unit test framework for JavaScript. 
+
+* No callbacks and closures. Simple and Intuitive. Easiser to understand and write tests.
+* Pure JavaScript based. Runnable in browsers or in NodeJS.
+* A similar syntax to JUnit test framework. Less learning curve for develop who is already familiar with JUnit.
 
 ### Usage
-In `hello.js`
 
-    exports.hi = function(){
-    	return "Hello world!" ;
-    };
-    
-Then in your `index.html`
-
-    <script src="nrequire.js"></script>
-    <script>
-    var hello = require("./hello.js");
-    console.log(hello.hi());
-    </script>
