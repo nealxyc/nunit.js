@@ -14,30 +14,39 @@
 				},
 				
 				"isTrue": function(obj, desc){
-					return
+					return assertTrue(desc, obj);
 				},
 				"isFalse": function(obj, desc){
-					if(obj === false){
-						return true ;
-					}
-					throw new Error(desc || "Expecting false");
+					return assertFalse(desc, obj);
 				},
 				"isNull": function(obj, desc){
-					if(isNull(obj)){
-						return true ;
-					}
-					throw new Error(desc || "Expecting null");
+					return assertNull(desc, obj);
 				},
 				"notNull": function(obj, desc){
-					if(!isNull(obj)){
-						return true ;
-					}
-					throw new Error(desc || "Expecting not null");
+					return assertNotNull(desc, obj);
 				},
 				"fail":  function(msg){
 					msg = isNull(msg)? "": msg ;
-					throw new Error(msg);
+					fail(msg);
 				}
-			}
+			};
+		
+		var EMPTY_FUNC = function(){};
+		var Test = global.NUnit.Test = function(desc){
+			var o = TestCase(desc);
+			return o.prototype;
+		};
+		
+		Test.prototype.before = EMPTY_FUNC ;
+		Test.prototype.after = EMPTY_FUNC ;
+		Test.beforeClass = EMPTY_FUNC ;
+		Test.afterClass = EMPTY_FUNC ;
+		Test.BEFORE  = "before" ;
+		Test.AFTER = "after" ;
+		Test.BEFORE_CLASS = "beforeClass" ;
+		Test.AFTER_CLASS = "afterClass";
+		
+		//mock module.exports
+		global.module = {exports: {}};
 	}
 })(this);

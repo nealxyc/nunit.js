@@ -81,6 +81,7 @@
 		this.desc = desc || "";
 	};
 
+	var EMPTY_FUNC = function(){};
 	Test.prototype.before = EMPTY_FUNC ;
 	Test.prototype.after = EMPTY_FUNC ;
 	Test.beforeClass = EMPTY_FUNC ;
@@ -130,9 +131,10 @@
 							this.log('[TestRunner] ' + 'Running BEFORE.');
 							invoke(test,Test.BEFORE);
 						}
-						this.log('[TestRunner] ' + 'Running #' + prop);
+						
 						try{
 							if(typeof test[prop] === "function"){
+								this.log('[TestRunner] ' + 'Running #' + prop);
 								total ++ ;
 								invoke(test,prop) ;
 								successful ++ ;
@@ -198,8 +200,8 @@
 			}
 			
 	};
-	module.exports = NUnit ;
+	if(typeof module !== "undefined") module.exports = NUnit ;
 	if(global && global.window === global){
-		global.NUnit = nunit ;
+		global.NUnit = NUnit ;
 	}
-})((function(){return this;})());
+})(this);
