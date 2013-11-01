@@ -2,15 +2,14 @@
  *  Copyright (c) 2013 Neal Xiong
  */
 
-(function(){
+(function(global){
 	
-	var nunit = module.exports = {};
+	var NUnit = {};
 	
-	/** @memberOf nunit */
-	var assert = {
+	var assert = NUnit.assert = {
 		/** 
 		 * Assert equals. Do not use to compare two null value. Use {@link #isNull} to assert a null(or undefined) value.
-		 * @memberOf nunit.assert 
+		 * @memberOf assert 
 		 * */
 		"equals": function(obj1, obj2, desc){
 			if(obj1 === obj2 || toStr(obj1) == toStr(obj2)){
@@ -20,7 +19,7 @@
 		},
 		/** 
 		 * Short cut to {@link assert#equals} 
-		 * @memberOf nunit.assert*/
+		 * @memberOf assert*/
 		"eq": function(obj1, obj2, desc){
 			return this.equals(obj1, obj2, desc);
 		},
@@ -74,42 +73,46 @@
 		return obj == undefined ;
 	};
 	
-	/**
-	 * @memberOf nunit
-	 */
-	var Test = function(){
+	var Test = NUnit.Test = function(desc){
+		if(this instanceof Test == false){
+			return new Test(desc);
+		}
 		
+		this.desc = desc || "";
 	};
 
-	/**
-	 * @memberOf nunit.Test.prototype
-	 */
 	Test.prototype.before = EMPTY_FUNC ;
 	Test.prototype.after = EMPTY_FUNC ;
-	/**
-	 * @memberOf nunit.Test
-	 * @static
-	 */
 	Test.beforeClass = EMPTY_FUNC ;
 	Test.afterClass = EMPTY_FUNC ;
-	/**
-	 * @memberOf nunit.Test
-	 * @static
-	 * @constant
-	 */
 	Test.BEFORE  = "before" ;
 	Test.AFTER = "after" ;
 	Test.BEFORE_CLASS = "beforeClass" ;
 	Test.AFTER_CLASS = "afterClass";
 	
-	/** @memberOf nunit */
-	nunit.TestRunner = {
+	var TestRunner = NUnit.TestRunner = function(){
+		if(this instanceof TestRunner == false){
+			return new TestRunner();
+		}
+		/** 
+		 * A list of result objects
+		 * @field */
+		this.results = [];
+		/**
+		 * A list of appenders
+		 */
+		this.appenders = [];
+	};
+	TestRunner.prototype = {
+			/** @param  */
 			run: function(test){
-				var total = 0, failed = 0 , successful = 0;
+				var total = 0, failed = 0 , successful = 0, target = test, 
+				/** An object that has all the method on target that were failed */
+				failedTarget={};
 				this.info('[TestRunner] ' + 'Starting test.');
 //				this.out.println('log', '[TestRunner] ' + 'Starting test.');
-				if(Test.prototype.isPrototypeOf(test) == false){
-					this.info('[TestRunner] ' + 'No test found.');
+				if(!test || !test instanceof Test ){
+					throw new Error('No test found.');
 					return ;
 				}
 				
@@ -192,12 +195,11 @@
 					}
 					
 				}
-			},
-			appenders:[]
+			}
+			
 	};
-	
-	nunit.assert = assert ;
-	nunit.Test = Test ;
-	module.exports = nunit ;
-	
-})();
+	module.exports = NUnit ;
+	if(global && global.window === global){
+		global.NUnit = nunit ;
+	}
+})((function(){return this;})());

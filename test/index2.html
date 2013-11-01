@@ -14,12 +14,12 @@
 <script src="../lib/jstest.js"></script>
 <script src="../lib/nrequire.js"></script>
 <script type="text/javascript">
-TestRunner.appenders.push({
-	"append": function(level, msg){
-		document.getElementById("appender").innerHTML += "[" + level.toUpperCase() + "] " + msg + "\n";
-	}
-});
-TestRunner.run(require("./test.js"));
+// TestRunner.appenders.push({
+// 	"append": function(level, msg){
+// 		document.getElementById("appender").innerHTML += "[" + level.toUpperCase() + "] " + msg + "\n";
+// 	}
+// });
+require("../nunit.js").TestRunner().run(require("./test.js"));
 </script>
 </body>
 </html>

@@ -1,5 +1,4 @@
 
-
 /**
  * Using the old testjs.js to test nunit.js
  */
@@ -96,4 +95,39 @@ test.testFail = function(){
 	eq("msg", err.message);
 	
 };
+
+test.testTestClass = function(){
+	var a = assert;
+	var t = new nunit.Test();
+	a.isTrue(t instanceof nunit.Test);
+	t.testOne = function(){};
+	a.equals(1, Object.getOwnPropertyNames(t).length);
+
+};
+
+test.testRunner = function(){
+	var a = assert;
+	
+	var runner = new nunit.TestRunner();
+
+	var err;
+	try{
+		runner.run();
+	}catch(e){
+		err = e;
+	}
+	a.notNull(err, "No test to run will cause error");
+
+	var t = new nunit.Test();
+	t.myTest = function(){ a.fail();};
+	runner.run(t);
+
+};
+
+/** Returns a runner that runs tests but do not output anything to the console */
+function getRunner(){
+
+}
+
+
 module.exports = test ;
