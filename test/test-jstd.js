@@ -3,15 +3,20 @@
  * Using the JsTestDriver to test nunit.js
  */
 
+var nunit = window.NUnit;
+var assert = nunit.assert ;
 var test = TestCase("Test NUnit.js");
 /** @memberOf test */
 test.prototype.testEq = function(){
-	assertEquals("", "");
+	assert.eq("", "");
 	
 	//When not equal, there will be an exception and err should not be null
-//	assertEquals("", 123, "When not equal, there will be an exception and err should not be null");
-	assertNotEquals( "When not equal, there will be an exception and err should not be null", "", 123);
-
+	var err;
+	try{
+		assert.eq("", 123, "When not equal, there will be an exception and err should not be null");
+	}catch(e){err = e;}
+	assertNotUndefined(err);
+	assertEquals("", "When not equal, there will be an exception and err should not be null", err.message);
 };
 
 test.prototype.testAssertTrue = function(){
@@ -73,23 +78,23 @@ test.prototype.testIsNull = function(){
 	
 };
 
-//test.prototype.testFail = function(){
-//	var err;
-//	try{
-//		fail();
-//	}catch(e){err = e;}
-//	assertNotNull(err);
+test.prototype.testFail = function(){
+	var err;
+	try{
+		fail();
+	}catch(e){err = e;}
+	assertNotNull(err);
 //	assertEquals("", err.message);
-//	
-//	var err;
-//	try{
-//		fail("msg");
-//	}catch(e){err = e;}
-//	assertNotNull(err);
-//	assertEquals("msg", err.message);
-//	
-//};
-//
+	
+	var err;
+	try{
+		fail("msg");
+	}catch(e){err = e;}
+	assertNotNull(err);
+	assertEquals("msg", err.message);
+	
+};
+
 //test.prototype.testTestClass = function(){
 //	var a = assert;
 //	var t = new NUnit.Test();

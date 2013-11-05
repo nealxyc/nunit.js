@@ -15,7 +15,7 @@
 			if(obj1 === obj2 || toStr(obj1) == toStr(obj2)){
 				return true ;
 			};
-			throw new Error("Expecting " + toStr(obj1) + " but was " + toStr(obj2)) ;
+			throw new Error(desc || "Expecting " + toStr(obj1) + " but was " + toStr(obj2)) ;
 		},
 		/** 
 		 * Short cut to {@link assert#equals} 
@@ -30,31 +30,78 @@
 			}
 			throw new Error(desc || "Expecting true");
 		},
+		"t": function(obj, desc){
+			return this.isTrue(obj, desc)
+		},
 		"isFalse": function(obj, desc){
 			if(obj === false){
 				return true ;
 			}
 			throw new Error(desc || "Expecting false");
 		},
+		"f": function(obj, desc){
+			return this.isFalse(obj, desc);
+		},
 		"isNull": function(obj, desc){
 			if(isNull(obj)){
 				return true ;
 			}
-			throw new Error(desc || "Expecting null");
+			throw Error(desc || "Expecting null");
 		},
 		"notNull": function(obj, desc){
 			if(!isNull(obj)){
 				return true ;
 			}
-			throw new Error(desc || "Expecting not null");
+			throw Error(desc || "Expecting not null");
 		},
 		"fail":  function(msg){
 			msg = isNull(msg)? "": msg ;
 			throw new Error(msg);
+		},
+		"contains": function(obj1, obj2, desc){
+			try{
+				return this.t(obj1.indexOf(obj2) > -1, desc)
+			}catch(e){
+				throw Error("Expecting " + toStr(obj2) + " in " + toStr(obj1));
+			}
+		},
+		"exception": function(callback, desc){
+			var err ;
+			try{
+				//FIXME ?? context of callback?
+				callback();
+			}catch(e){
+				err = e ;
+			}
+			return this.notNull(err, desc || "Expecting exception from closure.");
+		},
+		guarantee: function(){
+			return {
+				counter: 0,
+				crossPoints: [],
+				cross: function(desc){
+					this.crossPoints.push(desc);
+					this.counter ++;
+				},
+				count : function(num, desc){
+					try{
+						var pass = assert.eq(this.counter, num, desc);	
+						this.counter = 0;
+						this.crossPoints = [];
+					}catch(e){
+						var msg = desc || e.message ;
+						throw Error(msg + "\n" + "Captured cross points: " + toStr(this.crossPoints) );
+					}
+					
+				}
+
+			};
 		}
 	};
 
-	/** @private */
+	/** 
+	 *  Uses JSON.stringify to convert the object into a string.
+	 *  @private */
 	var toStr = function(obj){
 		if (isNull(obj)){
 			return "" + obj;
@@ -78,19 +125,38 @@
 			return new Test(desc);
 		}
 		
-		this.desc = desc || "";
+		this.desc = desc || ("_" + Date.now());
 	};
 
 	var EMPTY_FUNC = function(){};
 	Test.prototype.before = EMPTY_FUNC ;
 	Test.prototype.after = EMPTY_FUNC ;
+	Test.prototype.beforeEach = EMPTY_FUNC ;
+	Test.prototype.afterEach = EMPTY_FUNC ;
 	Test.beforeClass = EMPTY_FUNC ;
 	Test.afterClass = EMPTY_FUNC ;
 	Test.BEFORE  = "before" ;
 	Test.AFTER = "after" ;
+	Test.BEFORE_EACH  = "beforeEach" ;
+	Test.AFTER_EACH = "afterEach" ;
 	Test.BEFORE_CLASS = "beforeClass" ;
 	Test.AFTER_CLASS = "afterClass";
 	
+	/** Stack trace support from stacktrace.js
+		@private */
+	var stackTraceJs = function(){
+
+		if (typeof printStackTrace !== "undefined")
+			return printStackTrace
+		else if (typeof require !== "undefined")
+			try{
+				return require("stacktrace")
+			}catch(e){}
+			
+		else 
+			return undefined
+	}();
+
 	var TestRunner = NUnit.TestRunner = function(){
 		if(this instanceof TestRunner == false){
 			return new TestRunner();
@@ -99,23 +165,34 @@
 		 * A list of result objects
 		 * @field */
 		this.results = [];
+		this.total = 0;
+		this.failed = [];
 		/**
 		 * A list of appenders
 		 */
 		this.appenders = [];
+		this.reporters = [];
 	};
 	TestRunner.prototype = {
-			/** @param  */
+			/** @param  {Test} test */
 			run: function(test){
-				var total = 0, failed = 0 , successful = 0, target = test, 
-				/** An object that has all the method on target that were failed */
-				failedTarget={};
-				this.info('[TestRunner] ' + 'Starting test.');
+				var total = 0, failed = 0 , successful = 0, target = test ;
 //				this.out.println('log', '[TestRunner] ' + 'Starting test.');
 				if(!test || !test instanceof Test ){
 					throw new Error('No test found.');
 					return ;
 				}
+
+				for(var attr in test){
+					if(test.hasOwnProperty(attr) && typeof test[attr] == "function"){
+						total ++;
+					}
+				}
+				// failedTarget={};
+
+				this.info('[TestRunner] ' + 'Starting test.');
+				this.report("testUnitBegin", [total, test.desc]);
+
 				
 				//Run Test.beforeClass
 				if(test.hasOwnProperty(Test.BEFORE_CLASS) ){
@@ -132,20 +209,33 @@
 							invoke(test,Test.BEFORE);
 						}
 						
-						try{
-							if(typeof test[prop] === "function"){
-								this.log('[TestRunner] ' + 'Running #' + prop);
-								total ++ ;
+						if(typeof test[prop] === "function"){
+							this.log('[TestRunner] ' + 'Running #' + prop);
+							var result = new NUnit.TestResult(test, prop);
+							this.report("testBegin", [result.id, prop]);
+							this.results.push(result);
+
+							// total ++ ;
+							try{
 								invoke(test,prop) ;
 								successful ++ ;
+								result.passed = true;//result.passed = false by default
+							}catch(e){
+								failed ++ ;
+								this.err("[#" + prop +"] " + e.message);
+								if(stackTraceJs){
+									var trace = stackTraceJs({"e": e});
+									this.err(trace.join('\n'));
+								}
+								this.err("Failed: #"+ prop );
+								result.error = e;
+	//							log.err(e);
+							}finally{
+								this.report("testEnd", [result.id, prop, result.passed]);
 							}
-						}catch(e){
-							failed ++ ;
-							this.err("[#" + prop +"] " + e.message);
-							this.err("Failed: #"+ prop );
-//							log.err(e);
+							
 						}
-						
+
 						if(test.hasOwnProperty(Test.AFTER) && typeof test[Test.AFTER] === "function"){
 							this.log('[TestRunner] ' + 'Running AFTER');
 							invoke(test,Test.AFTER);
@@ -156,7 +246,7 @@
 					this.log('[TestRunner] ' + 'Running AFTER_CLASS');
 					invoke(test, Test.AFTER_CLASS);
 				}
-				
+				this.report("testUnitEnd", [total, test.desc, failed]);
 				this.log('[TestRunner] ' + 'Finishing test.');
 				this.info('[TestRunner] ' + 'Ran ' + total + ' tests, ' + successful + ' were successful, ' + failed + ' were failed.');
 			},
@@ -197,9 +287,29 @@
 					}
 					
 				}
+			},
+			addReporter: function(reporter){
+				this.reporters.push(reporter);
+			},
+			report: function(event, params){
+				for(var index in this.reports){
+					try{
+						var rep = this.reporters[index] ;
+						rep[event].apply(rep, params);
+					}catch(e){
+						//TODO reporter error
+					}
+				}
 			}
 			
 	};
+
+	var TestResult = NUnit.TestResult = function(test, testName){
+		this.id = test.desc + "." + testName;
+		this.passed = false ;
+		this.error = null;
+	};
+
 	if(typeof module !== "undefined") module.exports = NUnit ;
 	if(global && global.window === global){
 		global.NUnit = NUnit ;

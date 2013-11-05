@@ -19,7 +19,7 @@ TestRunner.appenders.push({
 		document.getElementById("appender").innerHTML += "[" + level.toUpperCase() + "] " + msg + "\n";
 	}
 });
-TestRunner.run(require("./test.js"));
+TestRunner.run(require("./test.js?t=" + Date.now()));
 </script>
 </body>
 </html>
