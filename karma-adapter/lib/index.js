@@ -1,16 +1,18 @@
+var path = require('path');
+
 var createPattern = function(path) {
   return {pattern: path, included: true, served: true, watched: false};
 };
 
-var initJasmine = function(files) {
-	var NUnit = require("../nunit.js");
-	var runner = new NUnit.TestRunner();
-	// runner.appenders.push();
-	runner.run(require("./test-karma.js?t=" + Date.now()));
+var initNUnit = function(files) {
+	var p = path.dirname(require.resolve('nunit'));
+	files.unshift(createPattern(__dirname + '/adapter.js'));
+  	files.unshift(createPattern(p + '/nunit.js'));
+  	files.unshift(createPattern(p + '/test/*karma.js'));
 };
 
-initJasmine.$inject = ['config.files'];
+initNUnit.$inject = ['config.files'];
 
 module.exports = {
-  'framework:nunit': ['factory', initJasmine]
+  'framework:nunit': ['factory', initNUnit]
 };

@@ -140,6 +140,7 @@ test.testRunner = function(){
 
 test.testeReporter = function(){
 	var a = nunit.assert ;
+	var g = a.guarantee();
 	var count  = 0 ;
 	var t = new nunit.Test();
 	t.test1 = function(){};
@@ -148,11 +149,13 @@ test.testeReporter = function(){
 		/** @param {Number} testCount */
 		/** @param {String} desc */
 		testUnitBegin: function(testCount, desc){
+			g.cross("testUnitBegin");
 			a.equals(2, testCount);
 			a.equals(t.desc, desc);
 		},
 		/** @param {String} testName  */
 		testBegin: function(id, testName){
+			g.cross("testBegin");
 			a.isTrue(id === t.desc + ".test1" || id === t.desc + ".test2");
 			a.isTrue(testName === "test1" || testName === "test2");
 		},
@@ -160,12 +163,14 @@ test.testeReporter = function(){
 		/** @param {String} testName  */
 		/** @param {Boolean} result  */
 		testEnd: function(id, testName, result){
+			g.cross("testEnd");
 			a.isTrue(id === t.desc + ".test1" || id === t.desc + ".test2");
 			a.isTrue(testName === "test1" || testName === "test2");
 			a.isTrue (result == true || result === false);
 		},
 
 		testUnitEnd: function(testCount, desc, failedCount){
+			g.cross("testUnitEnd");
 			a.equals(2, testCount);
 			a.equals(t.desc, desc);
 			a.eq(1, failedCount);
@@ -176,7 +181,7 @@ test.testeReporter = function(){
 	var runner = new nunit.TestRunner();
 	runner.addReporter(reporter);
 	runner.run(t);
-
+	g.count(4, "4 method should all be executed once");
 };
 
 
@@ -197,6 +202,26 @@ test.testGuarantee = function(){
 
 test.testContains = function(){
 	assert.contains("abc", "c");
+
+}
+
+test.testConfig = function(){
+	var a = assert ;
+	var opt = nunit.config({});
+	a.notNull(opt.debug);
+	a.notNull(opt.tests);
+	a.notNull(opt.reporters);
+	a.eq("ConsoleReporter", opt.reporters[0].id);
+
+	var opt = nunit.config({reporters:[{id: "any"}],
+		tests:[new Object], debug: true});
+	a.notNull(opt.debug);
+	a.t(opt.debug)
+	a.notNull(opt.tests);
+	a.notNull(opt.reporters);
+	a.eq(1, opt.tests.length);
+	a.eq(1, opt.reporters.length);
+	a.eq("any", opt.reporters[0].id);
 
 }
 /** Returns a runner that runs tests but do not output anything to the console */

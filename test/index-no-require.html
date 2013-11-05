@@ -10,19 +10,10 @@
 	<textarea rows="30" cols="100" id="appender" readonly="readonly">
 	</textarea>
 </div>
-<script src="../lib/utils.js"></script>
-<!--<script src="../lib/jstest.js"></script> -->
-<script src="../lib/nrequire.js"></script>
+<script src="../nunit.js"></script>
+<script src="test-no-require.js"></script>
 <script type="text/javascript">
-var nunit = require("../nunit.js");
-var conf = require();
-var runner = new nunit.TestRunner();
-runner.appenders.push({
-	"append": function(level, msg){
-		document.getElementById("appender").innerHTML += "[" + level.toUpperCase() + "] " + msg + "\n";
-	}
-});
-runner.run(require("./test-karma.js?t=" + Date.now()));
+window.NUnit.execute({debug: true});
 </script>
 </body>
 </html>
