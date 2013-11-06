@@ -4,8 +4,9 @@
  */
 
 var nunit = require("../nunit.js");
-var assert = nunit.assert ;
-var test = new Test("NUnit Test");
+
+var test = new nunit.Test("NUnit Test"); 
+var assert = test.assert ;
 
 
 test.testConstructor = function(){
@@ -29,7 +30,7 @@ test.testEq = function(){
 	try{
 		assert.eq("", 123, "When not equal, there will be an exception and err should not be null");
 	}catch(e){err = e;}
-	assertNotNull(err);
+	assert.notNull(err);
 	//assertEquals("When not equal, there will be an exception and err should not be null", err.message);
 
 };
@@ -41,30 +42,30 @@ test.assertTrue = function(){
 	try{
 		assert.isTrue({}, "desc");
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("desc", err.message);
+	assert.notNull(err);
+	assert.eq("desc", err.message);
 	
 	var err;
 	try{
 		assert.isTrue({});
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("Expecting true", err.message);
+	assert.notNull(err);
+	assert.eq("Expecting true", err.message);
 	
 	
 	var err;
 	try{
 		assert.isFalse("");
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("Expecting false", err.message);
+	assert.notNull(err);
+	assert.eq("Expecting false", err.message);
 	
 	var err;
 	try{
 		assert.isFalse(1, "desc");
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("desc", err.message);
+	assert.notNull(err);
+	assert.eq("desc", err.message);
 	
 }
 
@@ -81,32 +82,32 @@ test.isNull = function(){
 	try{
 		assert.isNull("null", "should be null");
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("should be null", err.message);
+	assert.notNull(err);
+	assert.eq("should be null", err.message);
 	
 	var err;
 	try{
 		assert.isNull(1);
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("Expecting null", err.message);
+	assert.notNull(err);
+	assert.eq("Expecting null", err.message);
 	
 };
 
 test.testFail = function(){
 	var err;
 	try{
-		fail();
+		assert.fail();
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("", err.message);
+	assert.notNull(err);
+	assert.eq("", err.message);
 	
 	var err;
 	try{
-		fail("msg");
+		assert.fail("msg");
 	}catch(e){err = e;}
-	assertNotNull(err);
-	eq("msg", err.message);
+	assert.notNull(err);
+	assert.eq("msg", err.message);
 	
 };
 
@@ -139,7 +140,7 @@ test.testRunner = function(){
 };
 
 test.testeReporter = function(){
-	var a = nunit.assert ;
+	var a = assert ;
 	var g = a.guarantee();
 	var count  = 0 ;
 	var t = new nunit.Test();
@@ -223,6 +224,9 @@ test.testConfig = function(){
 	a.eq(1, opt.reporters.length);
 	a.eq("any", opt.reporters[0].id);
 
+}
+test.doFail = function(){
+	assert.fail();
 }
 /** Returns a runner that runs tests but do not output anything to the console */
 function getRunner(){

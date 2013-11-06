@@ -24,7 +24,11 @@
 
 			},
 
-			testUnitEnd: function(testCount, desc, failedCount)){
+			testUnitEnd: function(testCount, desc, failedCount){
+
+			},
+
+			println: function(level, message){
 
 			}
 

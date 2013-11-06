@@ -6,7 +6,16 @@
 	
 	var NUnit = {};
 	
-	var assert = NUnit.assert = {
+	NUnit.Assert = function(test){
+		this.test = test ;
+		this.assertCount = 0;
+	};
+
+	var assert = {
+		"strictEquals": function(obj1, obj2, desc){
+			if(obj1 === obj2) return true ;
+			var e = Error("Expecting " + toStr(obj1) + " but was " + toStr(obj2));
+		},
 		/** 
 		 * Assert equals. Do not use to compare two null value. Use {@link #isNull} to assert a null(or undefined) value.
 		 * @memberOf assert 
@@ -75,7 +84,7 @@
 			}
 			return this.notNull(err, desc || "Expecting exception from closure.");
 		},
-		guarantee: function(){
+		"guarantee": function(){
 			return {
 				counter: 0,
 				crossPoints: [],
@@ -99,6 +108,27 @@
 		}
 	};
 
+	NUnit.Assert._dispatch = function(a, prop, params){
+		try{
+			return invoke(assert, prop, params);
+		}catch(e){
+			for(var idx in params){
+				params[idx] = toStr(params[idx]);
+			}
+			e.assertStack = e.assertStack || [];
+			e.assertStack.push("at " + prop + "(" + params.join(",") + ")");
+			throw e;
+		}
+	};
+	// Copy all the functions from assert to NUnit.Assert.prototype 
+	for(var prop in assert){
+		NUnit.Assert.prototype[prop] = (function(prop){
+			return function(){
+				return NUnit.Assert._dispatch(this, prop, argsToArray(arguments));
+			};
+		})(prop);
+	}
+
 	/** 
 	 *  Uses JSON.stringify to convert the object into a string.
 	 *  @private */
@@ -119,6 +149,44 @@
 		 * null == undefined is true */
 		return obj == undefined ;
 	};
+	/** Return an array containing all the parameters in the argument object (used to delegate function calls). 
+	 @private 
+	 @params {Arguments}  args */
+	var argsToArray = function(args){
+		var arr = [];
+		if(args && args.length)
+		for(var i = 0 ;i < args.length; i ++){
+			arr.push(args[i]);
+		}
+		return arr ;
+	};
+	var invoke = function(thisArg, funcName, params){
+		var alen = arguments.length ;
+		if(alen < 2 || !thisArg){
+			throw Error("Must have thisArg and funcName");
+		}
+		var cParams = [];
+		var func = thisArg[funcName] ;
+		switch(alen){
+			case 2:
+				break;
+			case 3:
+				Array.isArray(params) ? cParams = params: cParams = [params] ;
+				break;
+			default:
+				// > 3
+				for(var i = 2 ; i < alen ; i ++){
+					cParams.push(arguments[i]);
+				}
+		}
+	//	cParams.unshift(thisArg);
+		if(func && typeof func == "function"){
+	//		return func.call.apply(func, cParams) ;
+			return func.apply(thisArg, cParams) ;
+		}else{
+			throw Error( funcName + " is not found on object.");
+		}
+	};
 	
 	var Test = NUnit.Test = function(desc){
 		if(this instanceof Test == false){
@@ -126,6 +194,7 @@
 		}
 		
 		this.desc = desc || ("_" + Date.now());
+		this.assert = new NUnit.Assert(this);
 
 		//Add new test object into Test.instances array
 		Test.instances.push(this);
@@ -229,11 +298,17 @@
 							}catch(e){
 								failed ++ ;
 								this.err("[#" + prop +"] " + e.message);
-								if(stackTraceJs){
-									var trace = stackTraceJs({"e": e});
-									this.err(trace.join('\n'));
-								}
+								this.report("println", ["ERROR", "[#" + prop +"] " + e.message]);
+								if(e.assertStack){
+									this.err(e.assertStack.join("\n"));
+									this.report("println", ["ERROR", e.assertStack.join("\n")]);
+								} 
+								// if(stackTraceJs){
+								// 	var trace = stackTraceJs({"e": e});
+								// 	this.err(trace.join('\n'));
+								// }
 								this.err("Failed: #"+ prop );
+								this.report("println", ["ERROR", "Failed: #"+ prop ]);
 								result.error = e;
 	//							log.err(e);
 							}finally{
@@ -296,6 +371,13 @@
 				}
 			},
 			addReporter: function(reporter){
+				if(typeof reporter == "string") {
+					switch(reporter){
+						case "ConsoleReporter":
+							reporter = ConsoleReporter;
+							break;
+					}
+				}
 				this.reporters.push(reporter);
 			},
 			report: function(event, params){
@@ -305,6 +387,9 @@
 						if(typeof rep[event] == "function") rep[event].apply(rep, params);
 					}catch(e){
 						//TODO reporter error
+						if(console){
+							console.error(e);
+						}
 					}
 				}
 			},
@@ -376,7 +461,7 @@
 		/** @param {String} testName  */
 		/** @param {Boolean} result  */
 		testEnd: function(id, testName, result){
-			this.println("INFO", "#" + testName + result? " PASSED":" FAILED");
+			this.println("INFO", "#" + testName + (result? " PASSED":" FAILED"));
 		},
 
 		testUnitEnd: function(testCount, desc, failedCount){

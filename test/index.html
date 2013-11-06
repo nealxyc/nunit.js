@@ -13,13 +13,17 @@
 <script src="../lib/utils.js"></script>
 <script src="../lib/jstest.js"></script>
 <script src="../lib/nrequire.js"></script>
+<script src="../nunit.js"></script>
 <script type="text/javascript">
-TestRunner.appenders.push({
+var runner = new window.NUnit.TestRunner();
+
+runner.appenders.push({
 	"append": function(level, msg){
 		document.getElementById("appender").innerHTML += "[" + level.toUpperCase() + "] " + msg + "\n";
 	}
 });
-TestRunner.run(require("./test.js?t=" + Date.now()));
+runner.addReporter("ConsoleReporter");
+runner.run(require("./test.js?t=" + Date.now()));
 </script>
 </body>
 </html>
