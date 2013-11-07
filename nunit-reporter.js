@@ -19,7 +19,7 @@
 			},
 			/** @param {NUnit.Test} test  */
 			/** @param {String} testName  */
-			/** @param {Boolean} result  */
+			/** @param {NUnit.TestResult} result  */
 			testEnd: function(id, testName, result){
 
 			},

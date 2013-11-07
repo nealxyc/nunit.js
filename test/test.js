@@ -225,13 +225,32 @@ test.testConfig = function(){
 	a.eq("any", opt.reporters[0].id);
 
 }
+
+test.testBeforeEach = function(){
+	// var counter = 0 ;
+	// var t = new nunit.
+};
+
+test.testAssertCount = function(){
+	var t = new nunit.Test();
+	t.m1 = function(a){
+		a.eq(1, 1);
+		a.t(true);
+	};
+	t.m2 = function(a){
+		a.strictEquals(1,1)
+	};
+
+	nunit.TestRunner().run(t);
+	assert.eq(3, t.assert.assertCount, "Three asserts in two test cases.");
+	assert.eq(2, t.results.m1.assertCount);
+	assert.eq(1, t.results.m2.assertCount);
+	assert.eq(0, "0");
+}
+
+
 test.doFail = function(){
 	assert.fail();
 }
-/** Returns a runner that runs tests but do not output anything to the console */
-function getRunner(){
-
-}
-
 
 module.exports = test ;

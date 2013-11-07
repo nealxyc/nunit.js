@@ -14,7 +14,7 @@
 	var assert = {
 		"strictEquals": function(obj1, obj2, desc){
 			if(obj1 === obj2) return true ;
-			var e = Error("Expecting " + toStr(obj1) + " but was " + toStr(obj2));
+			throw Error("Expecting " + toStr(obj1) + " but was " + toStr(obj2));
 		},
 		/** 
 		 * Assert equals. Do not use to compare two null value. Use {@link #isNull} to assert a null(or undefined) value.
@@ -65,7 +65,7 @@
 		},
 		"fail":  function(msg){
 			msg = isNull(msg)? "": msg ;
-			throw new Error(msg);
+			throw Error(msg);
 		},
 		"contains": function(obj1, obj2, desc){
 			try{
@@ -108,8 +108,10 @@
 		}
 	};
 
+	/** Dispatch the function call to assert.prop(params) */
 	NUnit.Assert._dispatch = function(a, prop, params){
 		try{
+			a.assertCount ++ ;
 			return invoke(assert, prop, params);
 		}catch(e){
 			for(var idx in params){
@@ -120,7 +122,7 @@
 			throw e;
 		}
 	};
-	// Copy all the functions from assert to NUnit.Assert.prototype 
+	// Dispatch all the function call from NUnit.Asssert.prototype.prop to assert.prop
 	for(var prop in assert){
 		NUnit.Assert.prototype[prop] = (function(prop){
 			return function(){
@@ -195,6 +197,10 @@
 		
 		this.desc = desc || ("_" + Date.now());
 		this.assert = new NUnit.Assert(this);
+		/** 
+		 * A map of result objects - function name -> result
+		 * @field */
+		this.results = {};
 
 		//Add new test object into Test.instances array
 		Test.instances.push(this);
@@ -217,21 +223,6 @@
 	/**Keep track of all instances of Test */
 	Test.instances = [];
 	
-	/** Stack trace support from stacktrace.js
-		@private */
-	var stackTraceJs = function(){
-
-		if (typeof printStackTrace !== "undefined")
-			return printStackTrace
-		else if (typeof require !== "undefined")
-			try{
-				return require("stacktrace")
-			}catch(e){}
-			
-		else 
-			return undefined
-	}();
-
 	var TestRunner = NUnit.TestRunner = function(){
 		if(this instanceof TestRunner == false){
 			return new TestRunner();
@@ -286,35 +277,32 @@
 						
 						if(typeof test[prop] === "function"){
 							this.log('[TestRunner] ' + 'Running #' + prop);
-							var result = new NUnit.TestResult(test, prop);
+							var result = new TestResult(test, prop);
 							this.report("testBegin", [result.id, prop]);
 							this.results.push(result);
-
+							test.results[prop] = result ;
 							// total ++ ;
 							try{
-								invoke(test,prop) ;
+								var preCount = test.assert.assertCount ;
+								invoke(test,prop, test.assert) ;
 								successful ++ ;
 								result.passed = true;//result.passed = false by default
+								result.assertCount = test.assert.assertCount  - preCount ;
 							}catch(e){
 								failed ++ ;
-								this.err("[#" + prop +"] " + e.message);
-								this.report("println", ["ERROR", "[#" + prop +"] " + e.message]);
+								var msg = e.message;
 								if(e.assertStack){
-									this.err(e.assertStack.join("\n"));
-									this.report("println", ["ERROR", e.assertStack.join("\n")]);
-								} 
-								// if(stackTraceJs){
-								// 	var trace = stackTraceJs({"e": e});
-								// 	this.err(trace.join('\n'));
-								// }
-								this.err("Failed: #"+ prop );
-								this.report("println", ["ERROR", "Failed: #"+ prop ]);
+									msg += " " + e.assertStack.join("\n") ;
+								}
+								this.err("[#" + prop +"] " + msg);
+								this.report("println", ["ERROR", "[#" + prop +"] " + msg]);
+								//this.err("Failed: #"+ prop );
+								//this.report("println", ["ERROR", "Failed: #"+ prop ]);
 								result.error = e;
-	//							log.err(e);
 							}finally{
-								this.report("testEnd", [result.id, prop, result.passed]);
+								this.report("testEnd", [result.id, prop, result]);
 							}
-							
+							//Put result into
 						}
 
 						if(test.hasOwnProperty(Test.AFTER) && typeof test[Test.AFTER] === "function"){
@@ -398,9 +386,11 @@
 	};
 
 	var TestResult = NUnit.TestResult = function(test, testName){
+		this.testName = testName ;
 		this.id = test.desc + "." + testName;
 		this.passed = false ;
 		this.error = null;
+		this.assertCount = 0;
 	};
 
 	NUnit.config = function(options){
@@ -455,13 +445,19 @@
 		},
 		/** @param {String} testName  */
 		testBegin: function(id, testName){
-			this.println("INFO", "Running #" + testName);
+			//this.println("INFO", "Running #" + testName);
 		},
 		/** @param {NUnit.Test} test  */
 		/** @param {String} testName  */
 		/** @param {Boolean} result  */
 		testEnd: function(id, testName, result){
-			this.println("INFO", "#" + testName + (result? " PASSED":" FAILED"));
+			if(result.passed){
+				this.println("INFO", "PASSED" + " " + "#" + testName + "(). " + result.assertCount +  " asserts.");
+			}else{
+				this.println("ERROR", "FAILED" + " " + "#" + testName + "(). ");
+			}
+			
+
 		},
 
 		testUnitEnd: function(testCount, desc, failedCount){

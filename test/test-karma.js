@@ -1,8 +1,7 @@
 (function(window){
 	var nunit = window.NUnit ;
-	var assert = window.NUnit.assert ;
 	var test = new window.NUnit.Test("NUnit Test without require ...");
-
+	var assert = test.assert ;
 
 	test.testConstructor = function(){
 		var t = new nunit.Test();
@@ -220,5 +219,9 @@
 		a.eq("any", opt.reporters[0].id);
 
 	}
+
+	test.testAssertProp = function(){
+		assert.fail("Not implemented yet.");
+	};
 
 })(this);

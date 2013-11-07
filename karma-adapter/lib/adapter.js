@@ -13,13 +13,13 @@
 		testBegin: function(id, testName){
 			this.startTime = Date.now();
 		},
-		testEnd: function(id, testName, result){
+		testEnd: function(id, testName, res){
 			this.endTime = Date.now();
 			var result = {
 		      id: id,
 		      description: "",
 		      suite: [],
-		      success: result,
+		      success: res.passed,
 		      skipped: false,
 		      time: this.endTime - this.startTime,
 		      log: []
