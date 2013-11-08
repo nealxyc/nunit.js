@@ -106,6 +106,7 @@
 
 			};
 		}
+		
 	};
 
 	/** Dispatch the function call to assert.prop(params) */
@@ -120,16 +121,51 @@
 			e.assertStack = e.assertStack || [];
 			e.assertStack.push("at " + prop + "(" + params.join(",") + ")");
 			throw e;
-		}
+		} 
 	};
+
 	// Dispatch all the function call from NUnit.Asssert.prototype.prop to assert.prop
 	for(var prop in assert){
-		NUnit.Assert.prototype[prop] = (function(prop){
-			return function(){
-				return NUnit.Assert._dispatch(this, prop, argsToArray(arguments));
-			};
-		})(prop);
+		if(typeof assert[prop] == "function"){
+			NUnit.Assert.prototype[prop] = (function(prop){
+				return function(){
+					return NUnit.Assert._dispatch(this, prop, argsToArray(arguments));
+				};
+			})(prop);
+		}
+	};
+
+	Assert.prototype.tracer = function(desc){
+		return new Tracer(this);
 	}
+
+	var Tracer = function(assert){
+		this.assert = assert ;
+		this.traceQueue = [];
+		this.traceCount = 0;
+		this.traceMap = {};
+
+	};
+	Tracer.prototype = {
+		trace: function(desc){
+			this.traceCount ++ ;
+			this.traceQueue.push(["trace", desc]);
+		},
+		once: function(desc){
+			var key = toStr(desc);
+			var val = this.traceMap[key];
+			if(val){
+				this.traceMap[key] = val + 1;
+			}else{
+				this.traceMap[key] = 1;
+				this.traceQueue.push(["traceOnce", desc]);
+			}
+		},
+		verify: function(count){
+			this.assert.eq(count, this.traceCount);
+		}
+	};
+
 
 	/** 
 	 *  Uses JSON.stringify to convert the object into a string.
