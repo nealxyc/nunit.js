@@ -26,6 +26,16 @@
 			};
 			throw new Error(desc || "Expecting " + toStr(obj1) + " but was " + toStr(obj2)) ;
 		},
+
+		"notEquals": function(obj1, obj2, desc){
+			var _assert = this ;
+			return this.exception(function(){
+				_assert.eq(obj1, obj2);
+			}, "Expecting " + toStr(obj1) + " to be not equal to " + toStr(obj2));
+		},
+		"notEqual": function(obj1, obj2, desc){
+			return this.notEquals(obj1, obj2, desc);
+		},
 		/** 
 		 * Short cut to {@link assert#equals} 
 		 * @memberOf assert*/
@@ -83,29 +93,29 @@
 				err = e ;
 			}
 			return this.notNull(err, desc || "Expecting exception from closure.");
-		},
-		"guarantee": function(){
-			return {
-				counter: 0,
-				crossPoints: [],
-				cross: function(desc){
-					this.crossPoints.push(desc);
-					this.counter ++;
-				},
-				count : function(num, desc){
-					try{
-						var pass = assert.eq(this.counter, num, desc);	
-						this.counter = 0;
-						this.crossPoints = [];
-					}catch(e){
-						var msg = desc || e.message ;
-						throw Error(msg + "\n" + "Captured cross points: " + toStr(this.crossPoints) );
-					}
-					
-				}
-
-			};
 		}
+		// "guarantee": function(){
+		// 	return {
+		// 		counter: 0,
+		// 		crossPoints: [],
+		// 		cross: function(desc){
+		// 			this.crossPoints.push(desc);
+		// 			this.counter ++;
+		// 		},
+		// 		count : function(num, desc){
+		// 			try{
+		// 				var pass = assert.eq(this.counter, num, desc);	
+		// 				this.counter = 0;
+		// 				this.crossPoints = [];
+		// 			}catch(e){
+		// 				var msg = desc || e.message ;
+		// 				throw Error(msg + "\n" + "Captured cross points: " + toStr(this.crossPoints) );
+		// 			}
+					
+		// 		}
+
+		// 	};
+		// }
 		
 	};
 
@@ -135,7 +145,7 @@
 		}
 	};
 
-	Assert.prototype.tracer = function(desc){
+	NUnit.Assert.prototype.tracer = function(desc){
 		return new Tracer(this);
 	}
 
@@ -161,8 +171,24 @@
 				this.traceQueue.push(["traceOnce", desc]);
 			}
 		},
-		verify: function(count){
-			this.assert.eq(count, this.traceCount);
+		verify: function(count, desc){
+			try{
+				switch(typeof count){
+				case "number" :
+						return this.assert.eq(count, this.traceQueue.length, desc);
+						break;
+					case "object":
+						default:
+
+				}	
+			}catch(e){
+				//Failed verification
+				if(e.assertStack){
+					e.assertStack.push("at tracer.verify(" + toStr(count) + ", " + toStr(desc) + ")");
+				}
+				throw e ;
+			}
+					
 		}
 	};
 
@@ -230,8 +256,8 @@
 		if(this instanceof Test == false){
 			return new Test(desc);
 		}
-		
-		this.desc = desc || ("_" + Date.now());
+		this.id = "_" + Date.now();
+		this.desc = desc || "";
 		this.assert = new NUnit.Assert(this);
 		/** 
 		 * A map of result objects - function name -> result
@@ -320,11 +346,14 @@
 							// total ++ ;
 							try{
 								var preCount = test.assert.assertCount ;
+								result.startTime = Date.now();
 								invoke(test,prop, test.assert) ;
+								result.endTime = Date.now();
 								successful ++ ;
 								result.passed = true;//result.passed = false by default
 								result.assertCount = test.assert.assertCount  - preCount ;
 							}catch(e){
+								result.endTime = Date.now();
 								failed ++ ;
 								var msg = e.message;
 								if(e.assertStack){
@@ -427,6 +456,8 @@
 		this.passed = false ;
 		this.error = null;
 		this.assertCount = 0;
+		this.startTime = Date.now();
+		this.endTime = -1 ;
 	};
 
 	NUnit.config = function(options){
@@ -456,15 +487,7 @@
 			runner.debug = true ;
 		}
 		for(var index in options.reporters){
-			var rpt = options.reporters[index]
-			if(typeof rpt == "string") {
-				switch(rpt){
-					case "ConsoleReporter":
-						rpt = ConsoleReporter;
-						break;
-				}
-			}
-			runner.addReporter(rpt);
+			runner.addReporter(options.reporters[index]);
 		}
 		for(var index in options.tests){
 			runner.run(options.tests[index]);
@@ -492,7 +515,6 @@
 			}else{
 				this.println("ERROR", "FAILED" + " " + "#" + testName + "(). ");
 			}
-			
 
 		},
 
