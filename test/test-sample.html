@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+<style type="text/css">
+#nunit_report{
+font-family: Arial, Helvetica, sans-serif;
+min-width: 200px;
+max-width: 200px;
+width: 200px;
+position: fixed;
+right: 3px;
+bottom: 168px;
+/*border:1px solid gray;*/
+}
+#nunitSummary{
+	height: 20px;
+	max-height: 20px;
+	min-height: 20px;
+	border:1px ridge #808080 ;
+	padding: 4px 0 0 4px;
+	/*font-weight: bolder;*/
+	font-size: small;
+}
+#nunitDetail{
+	max-height: 200px;
+	min-height: 0px;
+	overflow-y: scroll;
+	border:1px inset #808080 ;
+	border-top: 0;
+	padding: 3px 0 0 3px;
+	resize: vertical;
+}
+.all-pass{
+	background-color: rgba(81, 182, 76, 0.75);
+	/*color: white;*/
+}
+.any-failed{
+	background-color: rgba(139, 45, 48, 0.75);
+}
+.single-test{
+	min-height: 18px;
+	font-size: smaller;
+	padding-left: 20px;
+	margin-left: 10px;
+}
+.single-test.failed{
+	background-image: url("../images/testerr.png");
+	background-repeat: no-repeat;
+}
+.single-test.passed{
+	background-image: url("../images/testok.png");
+	background-repeat: no-repeat;
+}
+.single-test.test-name{
+	margin-left: 0px;
+	background-image: url("../images/test.png");
+	background-repeat: no-repeat;
+}
+.closing{
+	animation: closeThis 1s ease 1 normal;
+	-webkit-animation: closeThis 1s ease 1 normal; /* Safari and Chrome */
+}
+.opening{
+	animation: closeThis 1s ease 1 reverse;
+	-webkit-animation: closeThis 1s ease 1 reverse; /* Safari and Chrome */
+}
+@keyframes closeThis
+{
+from {height: 200px;}
+to {height: 0px;}
+}
+
+@-webkit-keyframes closeThis /* Safari and Chrome */
+{
+from {height:  200px;}
+to {height: 0px;}
+}
+
+</style>
+</head>
+<body>
+<div id="nunit_report">
+		<div id="nunitSummary" class="all-pass">
+			<span id="totalTest">0</span> tests. <span id="totalFailed"></span> failed. <span id="totalAssert"></span> asserts.
+		</div>
+		<div id="nunitDetail">
+			<!--<span class='single-test failed'>${testName} ${time}<span>-->
+		</div>
+</div>
+<script src="../nunit.js"></script>
+<script src="./test.js"></script>
+<div id="appender" readonly="readonly">
+</div>
+<script type="text/javascript">
+// var runner = new window.NUnit.TestRunner();
+(function(nunit){
+	var totalTest = 0, totalAssert = 0 ; totalFailed = 0,results = [];
+	var row_template = "<span class='single-test'>${testName}</span>${time}<span>";
+	var reporter = {
+		testUnitBegin: function(testCount, desc){
+			totalTest += testCount ;
+			results.push([desc]);
+		},
+		testBegin: function(id, testName){
+
+		},
+		testEnd: function(id, testName, result){
+			totalAssert += result.assertCount;
+			results.push([testName, result.passed, result.assertCount, result.endTime - result.startTime]);
+		},
+
+		testUnitEnd: function(testCount, desc, failedCount){
+			totalFailed += failedCount;
+
+		},
+
+		println: function(level, message){
+
+		}
+
+	};
+	var run = function(){
+		nunit.execute({reporters:[reporter]});	
+	};
+
+	var makeRow = function(){
+		var span = document.createElement("div");
+		span.className = span.className || "";
+		span.className += " single-test";
+
+		return span ;
+	}
+	var updateView = function(){
+		var summary = document.getElementById("nunitSummary");
+		summary.className = totalFailed? "any-failed": "all-pass";
+		document.getElementById("totalTest").innerHTML = totalTest;
+		document.getElementById("totalFailed").innerHTML = totalFailed;
+		document.getElementById("totalAssert").innerHTML = totalAssert;
+		//update detail
+		var detail = document.getElementById("nunitDetail") ;
+		for(var i = 0 ; i < results.length ; i ++ ){
+			var result = results[i];
+			var div = makeRow();
+			switch(result.length){
+				case 1:
+					div.innerHTML = "NUnit.Test: " + result[0];
+					div.className += " test-name";
+					break ;
+				case 4:
+					div.className += result[1] ? " passed": " failed";
+					div.innerHTML = result[0] + " (" + (result[3]? result[3]/1000: "0.000") + "s)"
+					// detail.appendChild(document.createElement("br"));
+					break;
+			}
+			detail.appendChild(div);
+		}
+		if(totalFailed > 0) detail.hidden = false;
+	};
+
+	(function(){
+		//init
+		var sum = document.getElementById("nunitSummary");
+		var detail = document.getElementById("nunitDetail") ;
+		sum.onclick = function(event){
+			detail.hidden = !detail.hidden ;
+			// detail.className = detail.className.indexOf("closing") > -1 ? detail.className.replace("closing", "opening") : detail.className + " closing";
+		}
+		detail.hidden = true;
+	})();
+	run();
+	updateView();
+
+
+})(window.NUnit);
+
+</script>
+</body>
+</html>

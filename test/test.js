@@ -20,7 +20,7 @@
 	nunit = nunit? nunit: (require? require("nunit"): undefined);
 	if(!nunit) throw Error("This test requires NUnit.js");
 
-	var test = new nunit.Test("NUnit Test"); 
+	var test = new nunit.Test("Using NUnit.js to test NUnit.js test"); 
 	var assert = test.assert ;
 	test.testConstructor = function(){
 		var t = new nunit.Test();
@@ -188,7 +188,7 @@
 				tr.once("testEnd");
 				a.isTrue(id === t.desc + ".test1" || id === t.desc + ".test2");
 				a.isTrue(testName === "test1" || testName === "test2");
-				a.isTrue (result == true || result === false);
+				a.isTrue (result.passed === true || result.passed === false);
 			},
 
 			testUnitEnd: function(testCount, desc, failedCount){
@@ -267,9 +267,9 @@
 	}
 
 	test.doFail = function(){
-		assert.fail();
+		// assert.fail();
 	}
 
 	typeof module !== "undefined" ? module.exports = test : "";
-})(this, (typeof NUnit !== "undefined"? NUnit: undefined), require);
+})(this, (typeof NUnit !== "undefined"? NUnit: undefined), typeof require !== "undefined"? require: "");
 

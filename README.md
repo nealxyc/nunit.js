@@ -1,4 +1,4 @@
-NUnit.js v0.0.1
+NUnit.js
 ========
 
 Neal's unit test framework for JavaScript. 
@@ -7,5 +7,10 @@ Neal's unit test framework for JavaScript.
 * Pure JavaScript based. Runnable in browsers or in NodeJS.
 * A similar syntax to JUnit test framework. Less learning curve for develop who is already familiar with JUnit.
 
+## v0.1.1
+
 ### Usage
+
+#### Run test in browsers
+
 
