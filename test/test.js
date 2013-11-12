@@ -267,7 +267,7 @@
 	}
 
 	test.doFail = function(){
-		// assert.fail();
+		assert.fail();
 	}
 
 	typeof module !== "undefined" ? module.exports = test : "";
