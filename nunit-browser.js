@@ -186,7 +186,8 @@
 		document.getElementsByTagName("head")[0].appendChild(style)	
 		// document.head.appendChild(style);
 	};
-	(function(){
+
+	var init = function(){
 		//init
 		prepareCSS();
 		prepareDOM();
@@ -202,9 +203,27 @@
 			}
 		}
 		addClass(detail, "nunit-hidden");
-	})();
-	run();
-	updateView();
+	};
+	
+	if ( document.addEventListener ) {
+		console.log("addEventListener !");
+		window.addEventListener( "load", function(){
+			init();
+			run();
+			updateView();
+		}, false );
 
+	// If IE event model is used
+	} else {
+		console.log("attachEvent !");
+		// A fallback to window.onload, that will always work
+		window.attachEvent( "onload", function(){
+			init();
+			run();
+			updateView();
+		});
+
+	}
+	
 
 })(window.NUnit);

@@ -11,16 +11,14 @@ Neal's unit test framework for JavaScript.
 
 ### Usage
 
-#### Run test in browsers
-Include `nunit.js`, script containing  your tests, and `nunit-browser.js`
+#### In browsers
 
+	<!-- Include nunit.js -->
 	<script src="../nunit.js"></script>
 	<script>
 	var name = "world";
-	// Create a test object (test module)
-	var test = new NUnit.Test("Test Hello world");
-	// Every method on the test object is a test case. 
-	test.myTest = function(assert){
+	var test = new NUnit.Test("Test Hello world"); // Create a test object (test module)
+	test.myTest = function(assert){ // Every method on the test object is a test case. 
 	    assert.equals("hello world!", "hello " + name + "!");
 	  };
 	</script>
