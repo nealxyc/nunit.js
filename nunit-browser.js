@@ -19,15 +19,35 @@
 + "	/*font-weight: bolder;*/"
 + "	font-size: small;"
 + "}"
++ "#nunitError{"
++ "	position: absolute;"
++ "	bottom: -100px;"
++ "	width: 100%;"
++ "	max-height: 100px;"
++ "	min-height: 100px;"
++ "	border:1px inset #808080 ;"
++ "	border-top: 0;"
++ "	padding: 3px 0 0 3px;"
++ "	resize: vertical;"
++ "	font-family:\"Courier New\", Courier, monospace;"
++ "	font-size: small;"
++ "}"
++ ""
 + "#nunitDetail{"
 + "	max-height: 200px;"
-+ "	min-height: 0px;"
++ "	min-height: 20px;"
 + "	overflow-y: scroll;"
 + "	border:1px inset #808080 ;"
 + "	border-top: 0;"
 + "	padding: 3px 0 0 3px;"
 + "	resize: vertical;"
 + "}"
++ ""
++ ".nunit-unknown{"
++ "	background-color: rgba(131, 131, 131, 0.75);"
++ "	/*color: white;*/"
++ "}"
++ ""
 + ".nunit-all-pass{"
 + "	background-color: rgba(81, 182, 76, 0.75);"
 + "	/*color: white;*/"
@@ -42,6 +62,8 @@
 + "	margin-left: 10px;"
 + "}"
 + ".nunit-single-test.failed{"
++ "	cursor: pointer;"
++ "	text-decoration:underline;"
 + "	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAwFBMVEXJFiXeHy/obXfocnztjJb4+fzv8/vz9vz5+vzm7frt8vrl7fnp8Prr8frx9fvn7/r2+fzc6+bP49tgrn1irn5lsYFxt4suh005klk9j1pFlWFNn2pRpG9VonBSnG1QmGpbqnhfrHtcpHZZmXBosoNttIdHnWR7dE+fmn+5taJ+dU6HekyDd02Rf0iMfUqdhUWXgkawjz6sjECnikKiiEO7qHbLvpy0kD3///////8AAAAAAAAAAAAAAAAAAAAAAAAFgP5RAAAAOnRSTlP///////////////////////////////////////////////////////////////////////////8AN8D/CgAAAAFiS0dEPz5jMHUAAAAJcEhZcwAAAEgAAABIAEbJaz4AAACOSURBVBjTTc1nE4MgDIBhUJRqKwrdy+491Q74/3+sNNhcn0+59y4JMdb7D4HQQC4UQU8GTgGhzDYyc0oIFW/LLy55BeEp8vmi012LXDwgvMJJWLsRQxxlxSq+2+AxyjyyHU+XyTC52MC0rxlpOVcbqK99CiupSk8YBqPZKupHZ1xpOkc8etjvAL41NRx+PnOgHDBKqXC8AAAAAElFTkSuQmCC);"
 + "	background-repeat: no-repeat;"
 + "}"
@@ -71,7 +93,7 @@
 		},
 		testEnd: function(id, testName, result){
 			totalAssert += result.assertCount;
-			results.push([testName, result.passed, result.assertCount, result.endTime - result.startTime]);
+			results.push([testName, result.passed, result.assertCount, result.endTime - result.startTime, result.error]);
 		},
 
 		testUnitEnd: function(testCount, desc, failedCount){
@@ -122,10 +144,23 @@
 		span.className += " nunit-single-test";
 
 		return span ;
-	}
+	};
+	var showErr = function(dom, error){
+		removeClass(dom, "nunit-hidden");
+		dom.innerHTML = error.message + "<br>(Open console for stack trace.)";
+		if(console){
+			throw error ;
+		}
+	};
+
+	var clearErr = function(dom){
+		addClass(dom, "nunit-hidden");
+		dom.innerHTML = "";
+	};
 
 	var updateView = function(){
 		var summary = document.getElementById("nunitSummary");
+		var err = document.getElementById("nunitError");
 		summary.className = totalFailed? "nunit-any-failed": "nunit-all-pass";
 		document.getElementById("totalTest").innerHTML = totalTest;
 		document.getElementById("totalPassed").innerHTML = totalTest - totalFailed;
@@ -140,14 +175,27 @@
 					div.innerHTML = "NUnit.Test: " + result[0];
 					div.className += " test-name";
 					break ;
-				case 4:
+				case 5:
 					div.className += result[1] ? " passed": " failed";
 					div.innerHTML = result[0] + " (" + (result[3]? result[3]/1000: "0.000") + "s)"
 					// detail.appendChild(document.createElement("br"));
 					break;
 			}
 			detail.appendChild(div);
+			(function(div, result){
+				div.onclick = function(){
+					clearErr(err);
+					
+				};
+				if(result[4]){
+					div.onclick = function(){
+						showErr(err, result[4]);
+					}; 
+				}
+			})(div, result);
+			
 		}
+		clearErr(err);
 		if(totalFailed > 0) removeClass(detail, "nunit-hidden");
 	};
 
@@ -165,7 +213,7 @@
 				</div>
 		</div>
 		*/
-		var inner = "<div id=\"nunitSummary\" class=\"nunit-all-pass\"><span id=\"totalPassed\">0</span>/<span id=\"totalTest\">0</span> (<span id=\"totalAssert\"></span> asserts.)</div><div id=\"nunitDetail\"></div>";
+		var inner = "<div id=\"nunitSummary\" class=\"nunit-all-pass\"><span id=\"totalPassed\">0</span>/<span id=\"totalTest\">0</span> (<span id=\"totalAssert\"></span> asserts.)</div><div id=\"nunitDetail\"></div><div id=\"nunitError\">Errors</div>";
 		var div = document.createElement("div");
 		div.id = "nunitReport";
 		div.innerHTML = inner ;
@@ -191,6 +239,7 @@
 		//init
 		prepareCSS();
 		prepareDOM();
+
 		var sum = document.getElementById("nunitSummary");
 		var detail = document.getElementById("nunitDetail") ;
 		sum.onclick = function(event){
@@ -206,7 +255,7 @@
 	};
 	
 	if ( document.addEventListener ) {
-		console.log("addEventListener !");
+		//console.log("addEventListener !");
 		window.addEventListener( "load", function(){
 			init();
 			run();
@@ -215,7 +264,7 @@
 
 	// If IE event model is used
 	} else {
-		console.log("attachEvent !");
+		//console.log("attachEvent !");
 		// A fallback to window.onload, that will always work
 		window.attachEvent( "onload", function(){
 			init();

@@ -231,9 +231,54 @@
 
 	}
 
-	test.testBeforeEach = function(){
-		// var counter = 0 ;
-		// var t = new nunit.
+	test.testBeforeAfter = function(a){
+		var t = new nunit.Test();
+		var count = 0;
+		var count2 = 0;
+		var count3 = 0;
+		var count4 = 0;
+		t.before = function(){
+			count ++ ;
+		};
+
+		t.after = function(){
+			count2 ++ ;
+		};
+
+		t.beforeEach = function(){
+			count3 ++ ;
+		};
+
+		t.afterEach = function(){
+			count4 ++ ;
+		};
+
+		t.test1 = function(){};
+		t.test2 = t.test1 ;
+		t.test3 = t.test1 ;
+
+		var runner = new nunit.TestRunner();
+		runner.run(t);
+		a.eq(1, count);
+		a.eq(1, count2);
+		a.eq(3, count3);
+		a.eq(3, count4);
+
+		
+	};
+
+	test.isTestCase = function(a){
+		var Test = nunit.Test ;
+		a.f(Test.isValidTestName("before"));
+		a.f(Test.isValidTestName("after"));
+		a.f(Test.isValidTestName("beforeEach"));
+		a.f(Test.isValidTestName("afterEach"));
+		a.f(Test.isValidTestName(null));
+		a.f(Test.isValidTestName(undefined));
+		a.f(Test.isValidTestName(""));
+
+		a.t(Test.isValidTestName("any"));
+		a.t(Test.isValidTestName("goodName"));
 	};
 
 	test.testAssertCount = function(){
@@ -266,8 +311,9 @@
 		tr.verify(12);
 	}
 
+
 	test.doFail = function(){
-		assert.fail();
+		assert.fail("This should fail.");
 	}
 
 	typeof module !== "undefined" ? module.exports = test : "";

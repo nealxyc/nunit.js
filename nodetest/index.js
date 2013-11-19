@@ -1,5 +1,5 @@
 
-var nunit = require("../nunit.js");
+var nunit = require("nunit");
 var test = require("../test/test.js");
 nunit.execute({debug: true});
 

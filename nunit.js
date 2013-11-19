@@ -268,11 +268,15 @@
 		Test.instances.push(this);
 	};
 
+
 	var EMPTY_FUNC = function(){};
 	Test.prototype.before = EMPTY_FUNC ;
 	Test.prototype.after = EMPTY_FUNC ;
 	Test.prototype.beforeEach = EMPTY_FUNC ;
 	Test.prototype.afterEach = EMPTY_FUNC ;
+	Test.prototype.hasTest = function(funcName){
+		return this.hasOwnProperty(funcName) && typeof this[funcName] === "function" && Test.isValidTestName(funcName);
+	};
 	Test.beforeClass = EMPTY_FUNC ;
 	Test.afterClass = EMPTY_FUNC ;
 	Test.BEFORE  = "before" ;
@@ -284,6 +288,14 @@
 
 	/**Keep track of all instances of Test */
 	Test.instances = [];
+
+	/** Returns true if the argument is a valid test case function name */
+	Test.isValidTestName = function(funcName){
+		if(!funcName || funcName === Test.BEFORE || funcName === Test.AFTER || funcName === Test.BEFORE_EACH || funcName === Test.AFTER_EACH){
+			return false ;
+		}
+		return true ;
+	};
 	
 	var TestRunner = NUnit.TestRunner = function(){
 		if(this instanceof TestRunner == false){
@@ -311,8 +323,9 @@
 					return ;
 				}
 
+				// Count number of total tests
 				for(var attr in test){
-					if(test.hasOwnProperty(attr) && typeof test[attr] == "function"){
+					if(test.hasTest(attr)){
 						total ++;
 					}
 				}
@@ -322,19 +335,22 @@
 				this.report("testUnitBegin", [total, test.desc]);
 
 				
-				//Run Test.beforeClass
-				if(test.hasOwnProperty(Test.BEFORE_CLASS) ){
-					this.log('[TestRunner] ' + 'Running BEFORE_CLASS function.');
-					invoke(test, Test.BEFORE_CLASS);
+				//Run Test.before
+				if(test.hasOwnProperty(Test.BEFORE) ){
+					this.log('[TestRunner] ' + 'Running BEFORE function.');
+					invoke(test, Test.BEFORE);
 				}
 				for(var prop in test){
-					if(test.hasOwnProperty(prop)){
-						if("before" == prop){
-							continue ;
-						}
-						if(test.hasOwnProperty(Test.BEFORE) && typeof test[Test.BEFORE] === "function"){
-							this.log('[TestRunner] ' + 'Running BEFORE.');
-							invoke(test,Test.BEFORE);
+					if(test.hasTest(prop)){
+						
+						if(test.hasOwnProperty(Test.BEFORE_EACH) && typeof test[Test.BEFORE_EACH] === "function"){
+							this.log('[TestRunner] ' + 'Running BEFORE_EACH.');
+							try{
+								invoke(test,Test.BEFORE_EACH);
+							}catch(e){
+								;
+							}
+							
 						}
 						
 						if(typeof test[prop] === "function"){
@@ -370,15 +386,15 @@
 							//Put result into
 						}
 
-						if(test.hasOwnProperty(Test.AFTER) && typeof test[Test.AFTER] === "function"){
-							this.log('[TestRunner] ' + 'Running AFTER');
-							invoke(test,Test.AFTER);
+						if(test.hasOwnProperty(Test.AFTER_EACH) && typeof test[Test.AFTER_EACH] === "function"){
+							this.log('[TestRunner] ' + 'Running AFTER_EACH');
+							invoke(test,Test.AFTER_EACH);
 						}
 					}
 				}
-				if(test.hasOwnProperty(Test.AFTER_CLASS) ){
-					this.log('[TestRunner] ' + 'Running AFTER_CLASS');
-					invoke(test, Test.AFTER_CLASS);
+				if(test.hasOwnProperty(Test.AFTER) ){
+					this.log('[TestRunner] ' + 'Running AFTER');
+					invoke(test, Test.AFTER);
 				}
 				this.report("testUnitEnd", [total, test.desc, failed]);
 				this.log('[TestRunner] ' + 'Finishing test.');
