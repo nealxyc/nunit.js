@@ -279,10 +279,10 @@
 	};
 	Test.beforeClass = EMPTY_FUNC ;
 	Test.afterClass = EMPTY_FUNC ;
+	Test.BEFORE_ALL  = "beforeAll" ;
+	Test.AFTER_ALL = "afterAll" ;
 	Test.BEFORE  = "before" ;
 	Test.AFTER = "after" ;
-	Test.BEFORE_EACH  = "beforeEach" ;
-	Test.AFTER_EACH = "afterEach" ;
 	Test.BEFORE_CLASS = "beforeClass" ;
 	Test.AFTER_CLASS = "afterClass";
 
@@ -291,7 +291,7 @@
 
 	/** Returns true if the argument is a valid test case function name */
 	Test.isValidTestName = function(funcName){
-		if(!funcName || funcName === Test.BEFORE || funcName === Test.AFTER || funcName === Test.BEFORE_EACH || funcName === Test.AFTER_EACH){
+		if(!funcName || funcName === Test.BEFORE_ALL || funcName === Test.AFTER_ALL || funcName === Test.BEFORE || funcName === Test.AFTER){
 			return false ;
 		}
 		return true ;
@@ -336,17 +336,17 @@
 
 				
 				//Run Test.before
-				if(test.hasOwnProperty(Test.BEFORE) ){
-					this.log('[TestRunner] ' + 'Running BEFORE function.');
-					invoke(test, Test.BEFORE);
+				if(test.hasOwnProperty(Test.BEFORE_ALL) ){
+					this.log('[TestRunner] ' + 'Running BEFORE_ALL function.');
+					invoke(test, Test.BEFORE_ALL);
 				}
 				for(var prop in test){
 					if(test.hasTest(prop)){
 						
-						if(test.hasOwnProperty(Test.BEFORE_EACH) && typeof test[Test.BEFORE_EACH] === "function"){
-							this.log('[TestRunner] ' + 'Running BEFORE_EACH.');
+						if(test.hasOwnProperty(Test.BEFORE) && typeof test[Test.BEFORE] === "function"){
+							this.log('[TestRunner] ' + 'Running BEFORE.');
 							try{
-								invoke(test,Test.BEFORE_EACH);
+								invoke(test,Test.BEFORE);
 							}catch(e){
 								;
 							}
@@ -386,15 +386,15 @@
 							//Put result into
 						}
 
-						if(test.hasOwnProperty(Test.AFTER_EACH) && typeof test[Test.AFTER_EACH] === "function"){
-							this.log('[TestRunner] ' + 'Running AFTER_EACH');
-							invoke(test,Test.AFTER_EACH);
+						if(test.hasOwnProperty(Test.AFTER) && typeof test[Test.AFTER] === "function"){
+							this.log('[TestRunner] ' + 'Running AFTER');
+							invoke(test,Test.AFTER);
 						}
 					}
 				}
-				if(test.hasOwnProperty(Test.AFTER) ){
-					this.log('[TestRunner] ' + 'Running AFTER');
-					invoke(test, Test.AFTER);
+				if(test.hasOwnProperty(Test.AFTER_ALL) ){
+					this.log('[TestRunner] ' + 'Running AFTERALL');
+					invoke(test, Test.AFTER_ALL);
 				}
 				this.report("testUnitEnd", [total, test.desc, failed]);
 				this.log('[TestRunner] ' + 'Finishing test.');
@@ -455,10 +455,10 @@
 						var rep = this.reporters[index] ;
 						if(typeof rep[event] == "function") rep[event].apply(rep, params);
 					}catch(e){
-						//TODO reporter error
 						if(console){
-							console.error(e);
+							console.error("Error in reporter." + event + "(): " + e.message);
 						}
+						throw e ;
 					}
 				}
 			},
@@ -468,7 +468,7 @@
 
 	var TestResult = NUnit.TestResult = function(test, testName){
 		this.testName = testName ;
-		this.id = test.desc + "." + testName;
+		this.id = test.id + "." + testName;
 		this.passed = false ;
 		this.error = null;
 		this.assertCount = 0;

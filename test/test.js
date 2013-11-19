@@ -178,7 +178,7 @@
 			/** @param {String} testName  */
 			testBegin: function(id, testName){
 				tr.once("testBegin");
-				a.isTrue(id === t.desc + ".test1" || id === t.desc + ".test2");
+				a.isTrue(id === t.id + ".test1" || id === t.id + ".test2");
 				a.isTrue(testName === "test1" || testName === "test2");
 			},
 			/** @param {NUnit.Test} test  */
@@ -186,7 +186,7 @@
 			/** @param {Boolean} result  */
 			testEnd: function(id, testName, result){
 				tr.once("testEnd");
-				a.isTrue(id === t.desc + ".test1" || id === t.desc + ".test2");
+				a.isTrue(id === t.id + ".test1" || id === t.id + ".test2");
 				a.isTrue(testName === "test1" || testName === "test2");
 				a.isTrue (result.passed === true || result.passed === false);
 			},
@@ -202,6 +202,7 @@
 
 		var runner = new nunit.TestRunner();
 		runner.addReporter(reporter);
+		//runner.debug = false;
 		runner.run(t);
 		tr.verify(4, "4 method should all be executed at lease once");
 	};
@@ -237,19 +238,19 @@
 		var count2 = 0;
 		var count3 = 0;
 		var count4 = 0;
-		t.before = function(){
+		t.beforeAll = function(){
 			count ++ ;
 		};
 
-		t.after = function(){
+		t.afterAll = function(){
 			count2 ++ ;
 		};
 
-		t.beforeEach = function(){
+		t.before = function(){
 			count3 ++ ;
 		};
 
-		t.afterEach = function(){
+		t.after = function(){
 			count4 ++ ;
 		};
 
@@ -271,12 +272,14 @@
 		var Test = nunit.Test ;
 		a.f(Test.isValidTestName("before"));
 		a.f(Test.isValidTestName("after"));
-		a.f(Test.isValidTestName("beforeEach"));
-		a.f(Test.isValidTestName("afterEach"));
+		a.f(Test.isValidTestName("beforeAll"));
+		a.f(Test.isValidTestName("afterAll"));
 		a.f(Test.isValidTestName(null));
 		a.f(Test.isValidTestName(undefined));
 		a.f(Test.isValidTestName(""));
 
+		a.t(Test.isValidTestName("beforeEach"));
+		a.t(Test.isValidTestName("afterEach"));
 		a.t(Test.isValidTestName("any"));
 		a.t(Test.isValidTestName("goodName"));
 	};

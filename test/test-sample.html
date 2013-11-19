@@ -5,6 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 
 <style type="text/css">
+/* CSS-begin */
 #nunitReport{
 font-family: Arial, Helvetica, sans-serif;
 min-width: 200px;
@@ -26,16 +27,16 @@ bottom: 168px;
 }
 #nunitError{
 	position: absolute;
-	bottom: -100px;
+	bottom: -103px;
 	width: 100%;
 	max-height: 100px;
 	min-height: 100px;
-	border:1px inset #808080 ;
+	border:2px solid #BDBDBD ;
 	border-top: 0;
 	padding: 3px 0 0 3px;
 	resize: vertical;
-	font-family:"Courier New", Courier, monospace;
-	font-size: small;
+	font-family:"Lucida Console", Monaco, monospace;
+	font-size: 13px;
 }
 
 #nunitDetail{
@@ -47,7 +48,9 @@ bottom: 168px;
 	padding: 3px 0 0 3px;
 	resize: vertical;
 }
-
+.nunit-error-msg{
+	color: red;
+}
 .nunit-unknown{
 	background-color: rgba(131, 131, 131, 0.75);
 	/*color: white;*/
@@ -183,7 +186,7 @@ to {height: 0px;}
 
 	var showErr = function(dom, error){
 		removeClass(dom, "nunit-hidden");
-		dom.innerHTML = error.message + "<br>(Open console for stack trace.)";
+		dom.innerHTML = "<span class='nunit-error-msg'>" + error.message + "</span><br> See console for stacktrace.";
 		if(console){
 			throw error ;
 		}

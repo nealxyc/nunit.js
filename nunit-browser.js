@@ -21,16 +21,16 @@
 + "}"
 + "#nunitError{"
 + "	position: absolute;"
-+ "	bottom: -100px;"
++ "	bottom: -103px;"
 + "	width: 100%;"
 + "	max-height: 100px;"
 + "	min-height: 100px;"
-+ "	border:1px inset #808080 ;"
++ "	border:2px solid #BDBDBD ;"
 + "	border-top: 0;"
 + "	padding: 3px 0 0 3px;"
 + "	resize: vertical;"
-+ "	font-family:\"Courier New\", Courier, monospace;"
-+ "	font-size: small;"
++ "	font-family:\"Lucida Console\", Monaco, monospace;"
++ "	font-size: 13px;"
 + "}"
 + ""
 + "#nunitDetail{"
@@ -147,7 +147,7 @@
 	};
 	var showErr = function(dom, error){
 		removeClass(dom, "nunit-hidden");
-		dom.innerHTML = error.message + "<br>(Open console for stack trace.)";
+		dom.innerHTML = "<span class='errorMsg'" + error.message + "</sapn><br>(Open console for stack trace.)";
 		if(console){
 			throw error ;
 		}
