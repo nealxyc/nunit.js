@@ -1,0 +1,22 @@
+{
+  "name": "nunit",
+  "version": "0.2.1",
+  "homepage": "https://github.com/nealxyc/nunit.js",
+  "authors": [
+    "Neal Xiong"
+  ],
+  "description": "Neal's unit test framework for JavaScript.",
+  "main": "nunit.js",
+  "keywords": [
+    "unit",
+    "testing"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
