@@ -7,7 +7,7 @@ Neal's unit test framework for JavaScript.
 * Pure JavaScript based. Runnable in browser or in NodeJS.
 * A similar syntax to JUnit test framework. Less learning curve for developer who is already familiar with the most popular Java unit test framework.
 
-## v0.2.0
+## v0.2.1
 
 ### Usage
 

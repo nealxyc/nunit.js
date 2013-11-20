@@ -346,7 +346,7 @@
 
 
 	test.doFail = function(){
-		assert.fail("This should fail.");
+		//assert.fail("This should fail.");
 	}
 
 	typeof module !== "undefined" ? module.exports = test : "";
