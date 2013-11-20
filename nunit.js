@@ -30,18 +30,12 @@
 		"notEquals": function(obj1, obj2, desc){
 			var _assert = this ;
 			return this.exception(function(){
-				_assert.eq(obj1, obj2);
+				_assert.equals(obj1, obj2);
 			}, "Expecting " + toStr(obj1) + " to be not equal to " + toStr(obj2));
 		},
-		"notEqual": function(obj1, obj2, desc){
-			return this.notEquals(obj1, obj2, desc);
-		},
-		/** 
-		 * Short cut to {@link assert#equals} 
-		 * @memberOf assert*/
-		"eq": function(obj1, obj2, desc){
-			return this.equals(obj1, obj2, desc);
-		},
+		// "notEqual": function(obj1, obj2, desc){
+		// 	return this.notEquals(obj1, obj2, desc);
+		// },
 		
 		"isTrue": function(obj, desc){
 			if(obj === true){
@@ -49,17 +43,11 @@
 			}
 			throw new Error(desc || "Expecting true");
 		},
-		"t": function(obj, desc){
-			return this.isTrue(obj, desc)
-		},
 		"isFalse": function(obj, desc){
 			if(obj === false){
 				return true ;
 			}
 			throw new Error(desc || "Expecting false");
-		},
-		"f": function(obj, desc){
-			return this.isFalse(obj, desc);
 		},
 		"isNull": function(obj, desc){
 			if(isNull(obj)){
@@ -79,7 +67,7 @@
 		},
 		"contains": function(obj1, obj2, desc){
 			try{
-				return this.t(obj1.indexOf(obj2) > -1, desc)
+				return this.isTrue(obj1.indexOf(obj2) > -1, desc)
 			}catch(e){
 				throw Error("Expecting " + toStr(obj2) + " in " + toStr(obj1));
 			}
@@ -118,12 +106,41 @@
 		// }
 		
 	};
+	//
+	var makeAlias = function(targetObj, targetFuncName, aliases ){
+		if(!targetObj || !targetObj[targetFuncName] || !aliases){
+			return ;
+		}
+
+		if(typeof aliases == "string"){
+			if(typeof targetObj[aliases] == "undefined"){
+				targetObj[aliases] = targetObj[targetFuncName] ;
+			}else{
+				//? already exists
+			}
+		}else if(aliases.length){
+			for(var i = 0 ;i < aliases.length; i ++){
+				makeAlias(targetObj, targetFuncName, aliases[i]);
+			}
+		}
+
+	};
+
+	// makeAlias(assert, "strictEquals", ["strictEqual", "assertStrictEqual", "assertStrictEquals"]);
+	// makeAlias(assert, "equals", ["eq", "equal", "assertEquals", "assertEqual"]);
+	// makeAlias(assert, "notEquals", ["neq", "notEqual", "assertNotEqual", "assertNotEquals"]);
+	// makeAlias(assert, "isTrue", ["t", "assertTrue"]);
+	// makeAlias(assert, "isFalse", ["f", "assertFalse"]);
+	// makeAlias(assert, "isNull", ["assertNull"]);
+	// makeAlias(assert, "notNull", ["assertNotNull"]);
+	// makeAlias(assert, "contains", ["contain"]);
 
 	/** Dispatch the function call to assert.prop(params) */
 	NUnit.Assert._dispatch = function(a, prop, params){
 		try{
+			var ret = invoke(assert, prop, params);
 			a.assertCount ++ ;
-			return invoke(assert, prop, params);
+			return ret ;
 		}catch(e){
 			for(var idx in params){
 				params[idx] = toStr(params[idx]);
@@ -133,6 +150,7 @@
 			throw e;
 		} 
 	};
+
 
 	// Dispatch all the function call from NUnit.Asssert.prototype.prop to assert.prop
 	for(var prop in assert){
@@ -144,6 +162,15 @@
 			})(prop);
 		}
 	};
+
+	makeAlias(NUnit.Assert.prototype, "strictEquals", ["strictEqual", "assertStrictEqual", "assertStrictEquals"]);
+	makeAlias(NUnit.Assert.prototype, "equals", ["eq", "equal", "assertEquals", "assertEqual"]);
+	makeAlias(NUnit.Assert.prototype, "notEquals", ["neq", "notEqual", "assertNotEqual", "assertNotEquals"]);
+	makeAlias(NUnit.Assert.prototype, "isTrue", ["t", "assertTrue"]);
+	makeAlias(NUnit.Assert.prototype, "isFalse", ["f", "assertFalse"]);
+	makeAlias(NUnit.Assert.prototype, "isNull", ["assertNull"]);
+	makeAlias(NUnit.Assert.prototype, "notNull", ["assertNotNull"]);
+	makeAlias(NUnit.Assert.prototype, "contains", ["contain"]);
 
 	NUnit.Assert.prototype.tracer = function(desc){
 		return new Tracer(this);
@@ -197,6 +224,9 @@
 	 *  Uses JSON.stringify to convert the object into a string.
 	 *  @private */
 	var toStr = function(obj){
+		if(typeof obj == "function"){
+			return obj.toString();
+		}
 		if (isNull(obj)){
 			return "" + obj;
 		}
@@ -360,8 +390,8 @@
 							this.results.push(result);
 							test.results[prop] = result ;
 							// total ++ ;
+							var preCount = test.assert.assertCount ;
 							try{
-								var preCount = test.assert.assertCount ;
 								result.startTime = Date.now();
 								invoke(test,prop, test.assert) ;
 								result.endTime = Date.now();
@@ -369,10 +399,13 @@
 								result.passed = true;//result.passed = false by default
 								result.assertCount = test.assert.assertCount  - preCount ;
 							}catch(e){
-								result.endTime = Date.now();
 								failed ++ ;
+								result.endTime = Date.now();
+								result.assertCount = test.assert.assertCount  - preCount ;
+								
 								var msg = e.message;
 								if(e.assertStack){
+									e.assertStack.push(result.assertCount + " asserts so far.");
 									msg += " " + e.assertStack.join("\n") ;
 								}
 								this.err("[#" + prop +"] " + msg);
@@ -476,39 +509,53 @@
 		this.endTime = -1 ;
 	};
 
-	NUnit.config = function(options){
-		//TODO support options
-		var opt = {
-			tests: Test.instances,
-			reporters: [ConsoleReporter],
-			debug: false
-		};
-		if(options){
-			for(var attr in options){
-				if(typeof opt[attr] !== "undefined" && typeof opt[attr] == typeof options[attr]){
-					// if(typeof opt[attr] == "array"){
-
-					// }
-					opt[attr] = options[attr];
-				}
+	/** Global config object */
+	var _config = null;
+	/** Gets global config object */
+	var _getConfig = function(){
+		_config  = _config  || NUnit.defaultConfig();
+		return _config ;
+	};
+	/** Copy all the attributes that options does not have from optTemplate to options */
+	var _replicateConfig = function(options, optTemplate){
+		for(var attr in optTemplate){
+			if(typeof options[attr] === "undefined"){
+				options[attr] = optTemplate[attr];
 			}
 		}
-		return opt;
 	};
+
+	/** Returns default config */
+	NUnit.defaultConfig = function(){
+		return {
+				tests: Test.instances,
+				reporters: [ConsoleReporter],
+				debug: false
+			};
+	};
+	/** Get or set global config */
+	NUnit.config = function(options){
+		if(options){
+			_replicateConfig(options, _getConfig())
+			_config = options ;
+		}
+		return _getConfig();
+	};
+
 	/** Convenient method to run all instances of Test */
 	NUnit.execute = function(opt){
-		var options = NUnit.config(opt);
+		opt = opt || {} ;
+		_replicateConfig(opt, _getConfig()) ;
 		var runner = new NUnit.TestRunner();
-		if(options.debug){
+		if(opt.debug){
 			runner.debug = true ;
 		}
-		for(var index in options.reporters){
-			runner.addReporter(options.reporters[index]);
+		for(var index in opt.reporters){
+			runner.addReporter(opt.reporters[index]);
 		}
-		for(var index in options.tests){
-			runner.run(options.tests[index]);
+		for(var index in opt.tests){
+			runner.run(opt.tests[index]);
 		}
-		
 	}
 
 	var ConsoleReporter = {
@@ -560,4 +607,6 @@
 	if(global && global.window === global){
 		global.NUnit = NUnit ;
 	}
+
+	
 })(this);

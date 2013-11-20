@@ -214,14 +214,20 @@
 
 	test.testConfig = function(){
 		var a = assert ;
-		var opt = nunit.config({});
+		var opt = nunit.defaultConfig();
 		a.notNull(opt.debug);
 		a.notNull(opt.tests);
 		a.notNull(opt.reporters);
 		a.eq("ConsoleReporter", opt.reporters[0].id);
 
-		var opt = nunit.config({reporters:[{id: "any"}],
+		//saves global config
+		var cfg = nunit.config();
+
+		nunit.config({reporters:[{id: "any"}],
 			tests:[new Object], debug: true});
+
+		var opt = nunit.config();
+
 		a.notNull(opt.debug);
 		a.t(opt.debug)
 		a.notNull(opt.tests);
@@ -230,6 +236,8 @@
 		a.eq(1, opt.reporters.length);
 		a.eq("any", opt.reporters[0].id);
 
+		//reset global config
+		nunit.config(cfg);
 	}
 
 	test.testBeforeAfter = function(a){
@@ -302,7 +310,7 @@
 	}
 
 	test.testTracer = function(a){
-		var tr = assert.tracer();
+		var tr = a.tracer();
 		a.notNull(tr);
 		for(var i = 0 ; i < 10; i++){
 			tr.trace();
@@ -312,6 +320,28 @@
 		}
 
 		tr.verify(12);
+	}
+
+	test.testAliases = function(a){
+		/*
+	makeAlias(assert, "strictEquals", ["strictEqual", "assertStrictEqual", "assertStrictEquals"]);
+	makeAlias(assert, "equals", ["eq", "equal", "assertEquals", "assertEqual"]);
+	makeAlias(assert, "notEqual", ["neq", "notEquals", "assertNotEqual"]);
+	makeAlias(assert, "isTrue", ["t", "assertTrue"]);
+	makeAlias(assert, "isFalse", ["f", "assertFalse"]);
+	makeAlias(assert, "isNull", ["assertNull"]);
+	makeAlias(assert, "notNull", ["assertNotNull"]);
+	makeAlias(assert, "contains", ["contain"]);
+		*/
+		a.strictEquals(a.strictEquals, a.strictEqual);
+		a.strictEquals(a.strictEquals, a.assertStrictEqual);
+		a.strictEquals(a.strictEquals, a.assertStrictEquals);
+
+		a.strictEquals(a.equals, a.eq);
+		a.strictEquals(a.equals, a.equal);
+		a.strictEquals(a.equals, a.assertEquals);
+		a.strictEquals(a.equals, a.assertEqual);
+
 	}
 
 

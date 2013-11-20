@@ -1,6 +1,7 @@
 (function(nunit){
 	
-	var styleText = "#nunitReport{"
+	var styleText = ""
++ "#nunitReport{"
 + "font-family: Arial, Helvetica, sans-serif;"
 + "min-width: 200px;"
 + "max-width: 200px;"
@@ -42,7 +43,9 @@
 + "	padding: 3px 0 0 3px;"
 + "	resize: vertical;"
 + "}"
-+ ""
++ ".nunit-error-msg{"
++ "	color: red;"
++ "}"
 + ".nunit-unknown{"
 + "	background-color: rgba(131, 131, 131, 0.75);"
 + "	/*color: white;*/"
@@ -79,7 +82,6 @@
 + ".nunit-hidden{"
 + "	display:none;"
 + "}"
-+ ""
 ;
 	var totalTest = 0, totalAssert = 0 ; totalFailed = 0,results = [];
 	var row_template = "<span class='nunit-single-test'>${testName}</span>${time}<span>";
@@ -135,7 +137,7 @@
 		dom.style.cssText = styleText ;
 	}
 	var run = function(){
-		nunit.execute({reporters:[reporter]});	
+		nunit.execute({reporters:[reporter], debug:true});	
 	};
 
 	var makeRow = function(){
@@ -147,7 +149,7 @@
 	};
 	var showErr = function(dom, error){
 		removeClass(dom, "nunit-hidden");
-		dom.innerHTML = "<span class='errorMsg'" + error.message + "</sapn><br>(Open console for stack trace.)";
+		dom.innerHTML = "<span class='nunit-error-msg'>" + error.message + "</span><br> See console for stacktrace.";
 		if(console){
 			throw error ;
 		}
