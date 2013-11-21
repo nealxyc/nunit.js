@@ -117,17 +117,17 @@ There are two ways to get to the assert object.
 		- **verify(count, desc)**: Veryfies the total number of trace count is `count` and throws error if failed.
 	+ For example:
 ```js
-test.testTracer = function(a){
-	var tr = assert.tracer();
-	a.notNull(tr);
-	for(var i = 0 ; i < 10; i++){
-		tr.trace();
-		tr.once();
-		tr.once();//same `desc` as tr.once() above, so it will take no effect
-		tr.once("second trace.once()");
+	test.testTracer = function(a){
+		var tr = assert.tracer();
+		a.notNull(tr);
+		for(var i = 0 ; i < 10; i++){
+			tr.trace();
+			tr.once();
+			tr.once();//same `desc` as tr.once() above, so it will take no effect
+			tr.once("second trace.once()");
+		}
+		tr.verify(12);
 	}
-	tr.verify(12);
-}
 ```
 		
 
