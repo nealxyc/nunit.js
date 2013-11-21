@@ -9,6 +9,17 @@ Neal's unit test framework for JavaScript.
 
 ## v0.2.1
 
+### Installation
+With `npm`
+```sh
+	npm install nunit
+```
+
+or with `bower`
+```sh
+	bower install nunit
+```
+
 ### Usage
 
 #### In browser
@@ -27,14 +38,14 @@ Neal's unit test framework for JavaScript.
 	<script src="nunit-browser.js"></script>
 
 #### In NodeJS
-
+```js
 	var nunit = require("nunit");
 	var test = new NUnit.Test("Test Hello Node!");
 	test.myTest = function(assert){
 	    assert.equals("hello Node!", "hello " + "Node" + "!");
 	  };
 	nunit.execute(); //Use default configuration to run all test modules.
-
+```
 
 ### API doc
 
@@ -52,21 +63,24 @@ Neal's unit test framework for JavaScript.
 ##### Accessing the assert object
 There are two ways to get to the assert object.
 * From `assert` attribute of the test module
-
-		var test = new NUnit.Test("a test module");
-		var a = test.assert ;
+```js
+	var test = new NUnit.Test("a test module");
+	var a = test.assert ;
+```
 
 * From the first argument of the test function:
-
+```js
 		test.myTest = function(a){
 			a.assertTrue(true);
 		}
+```
 
 * And they are equivalent:
-
+```js
 		test.testAssert = function(a){
 			a.strictEquals(a, this.assert);
 		}
+```
 
 ##### Assert functions
 * **equals(obj1, obj2, desc)**  (Aliases: **eq, equal, assertEqual, assertEquals**)
@@ -101,7 +115,7 @@ There are two ways to get to the assert object.
 		- **once(desc)**: Adds 1 to the trace count the first time it is called. It uses `desc` to identify different calls.
 		- **verify(count, desc)**: Veryfies the total number of trace count is `count` and throws error if failed.
 	+ For example:
-		
+		```js
 			test.testTracer = function(a){
 				var tr = assert.tracer();
 				a.notNull(tr);
@@ -113,6 +127,7 @@ There are two ways to get to the assert object.
 				}
 				tr.verify(12);
 			}
+		```
 		
 
 
