@@ -17,9 +17,6 @@ module.exports = function(config) {
         'test/test.js'
     ],
 
-    nunit:{
-        debug: false
-    },
     // list of files to exclude
     exclude: [
       
@@ -28,7 +25,7 @@ module.exports = function(config) {
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-    reporters: ['dots'],
+    reporters: ['progress'],
 
 
     // web server port
