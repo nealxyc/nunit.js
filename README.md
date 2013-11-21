@@ -23,7 +23,7 @@ or with `bower`
 ### Usage
 
 #### In browser
-
+```html
 	<!-- Include nunit.js -->
 	<script src="../nunit.js"></script>
 	<script>
@@ -36,6 +36,7 @@ or with `bower`
 	<!-- nunit-browser.js contains the driver script that looks for all the test modules and runs them with built-in test runner. -->
 	<!-- It also provides a mini reporter for displaying test results -->
 	<script src="nunit-browser.js"></script>
+```
 
 #### In NodeJS
 ```js
@@ -115,19 +116,19 @@ There are two ways to get to the assert object.
 		- **once(desc)**: Adds 1 to the trace count the first time it is called. It uses `desc` to identify different calls.
 		- **verify(count, desc)**: Veryfies the total number of trace count is `count` and throws error if failed.
 	+ For example:
-		```js
-			test.testTracer = function(a){
-				var tr = assert.tracer();
-				a.notNull(tr);
-				for(var i = 0 ; i < 10; i++){
-					tr.trace();
-					tr.once();
-					tr.once();//same `desc` as tr.once() above, so it will take no effect
-					tr.once("second trace.once()");
-				}
-				tr.verify(12);
-			}
-		```
+```js
+test.testTracer = function(a){
+	var tr = assert.tracer();
+	a.notNull(tr);
+	for(var i = 0 ; i < 10; i++){
+		tr.trace();
+		tr.once();
+		tr.once();//same `desc` as tr.once() above, so it will take no effect
+		tr.once("second trace.once()");
+	}
+	tr.verify(12);
+}
+```
 		
 
 
