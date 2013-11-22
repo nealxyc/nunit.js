@@ -116,7 +116,8 @@ There are two ways to get to the assert object.
 		- **once(desc)**: Adds 1 to the trace count the first time it is called. It uses `desc` to identify different calls.
 		- **verify(count, desc)**: Veryfies the total number of trace count is `count` and throws error if failed.
 	+ For example:
-```js
+
+	```js
 	test.testTracer = function(a){
 		var tr = assert.tracer();
 		a.notNull(tr);
@@ -128,7 +129,7 @@ There are two ways to get to the assert object.
 		}
 		tr.verify(12);
 	}
-```
+	```
 		
 
 
