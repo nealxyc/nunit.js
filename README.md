@@ -41,7 +41,7 @@ or with `bower`
 #### In NodeJS
 ```js
 	var nunit = require("nunit");
-	var test = new NUnit.Test("Test Hello Node!");
+	var test = new nunit.Test("Test Hello Node!");
 	test.myTest = function(assert){
 	    assert.equals("hello Node!", "hello " + "Node" + "!");
 	  };
